@@ -25,29 +25,27 @@ app.get('/messages', (req, res) => {
     })
 })
 
-app.post('/messages', (req, res) => {
-    const message = new Message(req.body)
-    message.save()
-        .then(() => {
-            console.log('saved')
-            return Message.findOne({
-                message: 'bad word'
+app.post('/messages', async (req, res) => {
+    try {
+        const message = new Message(req.body)
+        const savedMessage = await message.save()
+        console.log('saved')
+    
+        const censoredFilter = await Message.findOne({
+            message: 'bad word'
+        })
+        if (censoredFilter)
+            await Message.remove({
+                _id: censoredFilter.id
             })
-        }).then(censored => {
-            if (censored) {
-                console.log('Censored Word: ', censored)
-                return Message.remove({
-                    _id: censored.id
-                }, err => {
-                    console.log('Removed censored message')
-                })
-            }
+        else {
             io.emit('message', req.body)
             res.sendStatus(200)
-        }).catch(err => {
-            res.sendStatus(500)
-            return console.error(err)
-        })
+        }
+    } catch (error) {
+        res.sendStatus(500)
+        return console.error(error)
+    }
 })
 
 
@@ -57,7 +55,8 @@ io.on('connection', (socket) => {
 
 mongoose.connect(dbUrl, err => {
     err ? console.log(err) : console.log('mongo connected')
-})
+}) 
+
 const server = http.listen(3000, () => {
     console.log('server on port', server.address().port)
 })
