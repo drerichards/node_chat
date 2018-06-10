@@ -16,7 +16,8 @@
         <div class="jumbotron">
             <h1 class="display-4">Send Message</h1>
             <br>
-            <input type="text" class="form-control" placeholder="Name">
+            <input id="name" type="text" class="form-control" placeholder="Name">
+            <textarea id="message" type="text" class="form-control" placeholder="Message"></textarea>
             <br>
             <button id="send" class="btn btn-success">Send</button>
         </div>
@@ -31,12 +32,15 @@
         crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T"
         crossorigin="anonymous"></script>
+        <script src="/socket.io/socket.io.js"></script>
 
     <script>
         $(() => {
-            $("#send").click((() => {
-                getMessages()
-            }))
+            $("#send").click(() => {
+                const message = {name: $('#name').val(), message: $('#message').val()}
+                postMessage(message)
+            })
+            getMessages()
         })
         
         function addMessages(message) { 
@@ -47,6 +51,10 @@
              $.get('http://localhost:3000/messages', (data) => {
                  data.forEach(addMessages);
              })
+          }
+
+          function postMessage(message) { 
+             $.post('http://localhost:3000/messages', message)
           }
     </script>
 
